@@ -113,8 +113,8 @@ st.markdown("""
 T_TITLE_ENG = "Readings Register"
 T_TITLE_VIE = "(Nhật Ký Đọc Kinh Thánh)"
 
-T_DATE_HDR  = "Current Date"
-T_DATE_VIE  = "(Ngày Hiện Tại)"
+T_DATE_HDR   = "Current Date"
+T_DATE_VIE   = "(Ngày Hiện Tại)"
 
 T_PERIOD_HDR = "Period Tracking /"
 T_PERIOD_VIE = "Chọn mốc thời gian"
@@ -188,32 +188,53 @@ st.markdown("""
 st.markdown(f"<h1>📚 {T_TITLE_ENG} <span style='font-size: 22px; color: #d4af37; font-weight: normal;'>{T_TITLE_VIE}</span></h1>", unsafe_allow_html=True)
 
 # =====================================================================
-# DATA STORAGE LAYER: SERVICE ACCOUNT JSON CONNECTION MANAGER
+# DATA STORAGE LAYER: SERVICE ACCOUNT TOML TABLE CONNECTION MANAGER
 # =====================================================================
 GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iPxF9ftWROX-_BbBBGKC3rkgRn5QcCIrvcbB3jVoH1g/edit?usp=sharing"
 CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 
-import base64
-
-[gspread_creds]
-type = 'service_account'
-project_id = 'sheets-ai-automation'
-private_key_id = '3a77cb6b83b663390c8cf3cdcf2c7aee761322e3'
-private_key = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDL9KX1Rn++O290mPD9poYR5LJpcIfBablDZtKJGCvbLC5EecnsWHG//hCtF/AB80MZ8NzIYUxKavFpYLpS1BVOmIDPFSmfnxvfEqez+r2G5HHL8nibzdsCLcLAPMjWrIBBaZwo8YCKVu2T+jWZtymHqt1q7p46BtUEYwX5MvJ4y4aFCZgzHeXc4XqUpgEWipki9J3AwkdkAusXLfy6Rne6aS/f2ZU2YpRJzPIW6UZoasixvA39GFqCpvyTp3Bp9g39UvbtECOieC4ehygrRvu94TG/5VLY1ZXe2gcluy9DrXMLxa/BSC6Ibri0IZ6cFuBIFQ23agNNKKLBCTD3y+AvAgMBAAECggEABY2FnOXseG21QbFpbkMM9RzmTXbh/+LrkKA3LOc2I5pSVLpdRCgHt6YolFuSxPZAit0efJBr4Cvy68z6F/V+zd5tDsiRAK/S2iaB34DYaLQO8/I+5vOaZ7bHzcAQxFLo15XugHtweC8q1dzVNMFQJZLdnhmvUkbUxUxgT0IAsbUurkqf9I6gI+J+7sBxxXfExf/rdyfIbL1zveMx/CvfxKTV+Mn21bTU8FhxXyK4j0xiLerasO8ZhYW5g1LCuz/nu8oems0TRWnnFBcwViDt6XzCJe9zyM4dY3ITG3x+vrM47n8VEKXZZ/Cz0IVlEmDWMCxZwGREkeQMy5Q9/58/QQKBgQDlIls6F3w4PiPag/rdOhPUZQj4WqAcrtvnG3H573ChfU4ri6fUpz0oPTnX38BF1JbkTZZM4B7Bg3mEXv7BpCWHme3Zbf5wBY/atHtZiKCxB7m1wBrOKF+O6ruA7p1rwB06HkAMfC/90jZ2pyPB+2I5MVai7dJzvaLDCgiREXXFPwKBgQDj3om5wyBza0kWpGn37fOuEKrfSl2/pDL1EyE9izwU4iNKhXoTk2qQ+otlNfVFpcUrLv7Yy+FYtnuJBr+r+9VtDrmV9w9ayxoaOvKzBaun84wXjJ4fUXRHFqFVvimeU3FI35UdLiFdbJTF3zvxPRs3pgSwiF6l1oP4xg/aQIF5EQKBgFID5Cd89IelJmw2xXqeKS7jIzzSI3Fg3XFxj3Bo1iXXlj1b9azWV7upfqTYgBf+qiv54YyOxDN7/ej1n7ZsLMrGvC4RgvtR4lXkOCqqDuqO21hE9NNJ/DpJpufVgR9qWovM/Bv776morrn1xYTPmC7kjCAxhBzNig7J7psOZts9AoGBAKsEf9UdLyOwp2AI8UcUHUjMVZHT3FxSPbRVMSNhdiwuNFJfruk2QEqi3y+MuZIWAc6RLM9E5NGR01FZ8UyAawO4g2ybybhYqjR5fWECpnwce03JSXszxNL9lwQk/lNHSMRqmR0XXA8jyNxg2DoLpHu1a9uZ3X8VamKxM4CX3RQhAoGAEORcUTl6G4p5OEJWfe5Er65SVcHTLDpvld4jHnoYq9vr9Tnq0hSFb/bcjK5M5lmSI/lbpbovd35CIKkYVTYNRPGPU2Q7YVIGPDqDbCXKGOMwK42O/w5dXt3Avn4SPySgEPskSmTK2+QBlTCJPTB7UNAFwd8Achz+PVYZHZ88+nA='
-client_email = 'streamlit-writer@sheets-ai-automation.iam.gserviceaccount.com'
-client_id = '100637666801390427822'
-auth_uri = 'https://accounts.google.com/o/oauth2/auth'
-token_uri = 'https://oauth2.googleapis.com/token'
-auth_provider_x509_cert_url = 'https://www.googleapis.com/oauth2/v1/certs'
-client_x509_cert_url = 'https://www.googleapis.com/robot/v1/metadata/x509/streamlit-writer%40sheets-ai-automation.iam.gserviceaccount.com'
-universe_domain = 'googleapis.com'
+@st.cache_data(ttl=0)
+def fetch_sheet_records():
+    try:
+        # Check for our clean table structure in st.secrets
+        if "gspread_creds" in st.secrets:
+            # Safely create editable python dictionary from read-only mapping
+            creds = dict(st.secrets["gspread_creds"])
+            
+            if "private_key" in creds:
+                pk = str(creds["private_key"])
+                
+                # Strip out any formatting wrappers or formatting remnants
+                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
+                pk = pk.replace("-----END PRIVATE KEY-----", "")
+                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+                
+                # Rebuild structured PEM layout block
+                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+                for i in range(0, len(pk), 64):
+                    clean_pk += pk[i:i+64] + "\n"
+                clean_pk += "-----END PRIVATE KEY-----\n"
+                
+                creds["private_key"] = clean_pk
+        else:
+            with open(CREDENTIALS_FILE, "r") as f:
+                creds = json.load(f)
+        
+        gc = gspread.service_account_from_dict(creds)
+        sh = gc.open_by_url(GOOGLE_SHEET_URL)
+        worksheet = sh.get_worksheet(0)
+        records = worksheet.get_all_records()
+        return pd.DataFrame(records), worksheet
+    except Exception as e:
+        st.error(f"Google Cloud connection failed: {e}")
+        return pd.DataFrame(), None
 
 raw_df, target_worksheet = fetch_sheet_records()
 
 if raw_df is None or len(raw_df) == 0:
     raw_df = pd.DataFrame(columns=["Timestamp", "Name", "BibleReference", "ChaptersRead", "GodSpoke", "GodObey", "Phone"])
 
-# --- SIDEBAR ENTRY FORM (HTML FIXED & DISCRETE ISOLATION) ---
+# --- SIDEBAR ENTRY FORM ---
 st.sidebar.markdown(f"### 📝 Entry Form <br><span class='vn-blue' style='font-size:16px;'>Đơn Nhập Liệu</span>", unsafe_allow_html=True)
 
 st.sidebar.markdown(f"{T_USER_SEL} <span class='vn-blue'>{T_USER_VIE}</span>", unsafe_allow_html=True)
