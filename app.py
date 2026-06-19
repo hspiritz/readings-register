@@ -202,14 +202,21 @@ def fetch_sheet_records():
             else:
                 creds = json.loads(st.secrets["creds"])
             
-            # Advanced Key Normalizer: Cleans up any mixed text formatting artifacts
             if "private_key" in creds:
-                pk = creds["private_key"]
-                # Convert literal "\n" text strings to actual system line breaks
-                pk = pk.replace("\\n", "\n")
-                # Remove any accidental double line breaks
-                pk = pk.replace("\n\n", "\n")
-                creds["private_key"] = pk
+                pk = str(creds["private_key"])
+                # 1. Strip away standard headers, labels, and system artifacts
+                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
+                pk = pk.replace("-----END PRIVATE KEY-----", "")
+                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+                
+                # 2. Re-wrap the raw, sanitized key block with perfectly structured headers
+                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+                # Slice the raw token block into clean, compliant 64-character text segments
+                for i in range(0, len(pk), 64):
+                    clean_pk += pk[i:i+64] + "\n"
+                clean_pk += "-----END PRIVATE KEY-----\n"
+                
+                creds["private_key"] = clean_pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
