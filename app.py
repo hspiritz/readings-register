@@ -197,11 +197,14 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 def fetch_sheet_records():
     try:
         if "creds" in st.secrets:
-            # Safely check if it's already a dictionary or a raw text string
             if isinstance(st.secrets["creds"], dict) or hasattr(st.secrets["creds"], "keys"):
                 creds = dict(st.secrets["creds"])
             else:
                 creds = json.loads(st.secrets["creds"])
+            
+            # Fix TOML backslash rendering by forcing raw characters into actual system line breaks
+            if "private_key" in creds:
+                creds["private_key"] = creds["private_key"].replace("\\n", "\n")
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
@@ -214,7 +217,6 @@ def fetch_sheet_records():
     except Exception as e:
         st.error(f"Google Cloud connection failed: {e}")
         return pd.DataFrame(), None
-
 
 raw_df, target_worksheet = fetch_sheet_records()
 
