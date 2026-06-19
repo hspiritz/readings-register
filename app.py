@@ -198,18 +198,29 @@ import base64
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        if "private_key_base64" in st.secrets:
-            creds = dict(st.secrets)
+        if "private_key_raw" in st.secrets:
+            # Build a completely fresh, uncorrupted dictionary directly from secrets
+            creds = {
+                "type": st.secrets["type"],
+                "project_id": st.secrets["project_id"],
+                "private_key_id": st.secrets["private_key_id"],
+                "client_email": st.secrets["client_email"],
+                "client_id": st.secrets["client_id"],
+                "auth_uri": st.secrets["auth_uri"],
+                "token_uri": st.secrets["token_uri"],
+                "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
+                "client_x509_cert_url": st.secrets["client_x509_cert_url"],
+                "universe_domain": st.secrets["universe_domain"]
+            }
             
-            # Decode the base64 string directly back to a functional private key row
-            encoded_key = creds["private_key_base64"]
-            decoded_bytes = base64.b64decode(encoded_key)
-            decoded_str = decoded_bytes.decode("utf-8")
+            # Format the raw private key string with pristine system line breaks
+            raw_key = st.secrets["private_key_raw"].strip()
+            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+            for i in range(0, len(raw_key), 64):
+                clean_pk += raw_key[i:i+64] + "\n"
+            clean_pk += "-----END PRIVATE KEY-----\n"
             
-            # Form clean system credentials dictionaries
-            creds["private_key"] = decoded_str.replace("\\n", "\n")
-            if "private_key_base64" in creds:
-                del creds["private_key_base64"]
+            creds["private_key"] = clean_pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
