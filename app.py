@@ -198,30 +198,27 @@ import base64
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        if "private_key_raw" in st.secrets:
-            # Build a completely fresh, uncorrupted dictionary directly from secrets
-            creds = {
-                "type": st.secrets["type"],
-                "project_id": st.secrets["project_id"],
-                "private_key_id": st.secrets["private_key_id"],
-                "client_email": st.secrets["client_email"],
-                "client_id": st.secrets["client_id"],
-                "auth_uri": st.secrets["auth_uri"],
-                "token_uri": st.secrets["token_uri"],
-                "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
-                "client_x509_cert_url": st.secrets["client_x509_cert_url"],
-                "universe_domain": st.secrets["universe_domain"]
-            }
+        # Check for our clean table structure in st.secrets
+        if "gspread_creds" in st.secrets:
+            # Safely create a editable python dictionary from the read-only secrets mapping
+            creds = dict(st.secrets["gspread_creds"])
             
-            # Format the raw private key string with pristine system line breaks
-            raw_key = st.secrets["private_key_raw"].strip()
-            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
-            for i in range(0, len(raw_key), 64):
-                clean_pk += raw_key[i:i+64] + "\n"
-            clean_pk += "-----END PRIVATE KEY-----\n"
-            
-            creds["private_key"] = clean_pk
+            if "private_key" in creds:
+                pk = str(creds["private_key"])
+                # Clean up formatting remnants and restore real system linebreaks
+                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
+                pk = pk.replace("-----END PRIVATE KEY-----", "")
+                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+                
+                # Rebuild a mathematically sound PEM block Google requires
+                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+                for i in range(0, len(pk), 64):
+                    clean_pk += pk[i:i+64] + "\n"
+                clean_pk += "-----END PRIVATE KEY-----\n"
+                
+                creds["private_key"] = clean_pk
         else:
+            # Fallback to local json file if secrets are missing
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
         
