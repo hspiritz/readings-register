@@ -197,13 +197,12 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 def fetch_sheet_records():
     try:
         if "creds_json" in st.secrets:
-            # Parse the direct JSON string structure
             creds = json.loads(st.secrets["creds_json"])
             
             if "private_key" in creds:
                 pk = str(creds["private_key"])
-                # Clean out string escape artifacts securely
-                pk = pk.replace("\\n", "\n")
+                # Safely reconstruct real system newlines from the hyphens
+                pk = pk.replace("[-", "\n")
                 creds["private_key"] = pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
