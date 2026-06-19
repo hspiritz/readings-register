@@ -196,27 +196,23 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        if "creds" in st.secrets:
-            if isinstance(st.secrets["creds"], dict) or hasattr(st.secrets["creds"], "keys"):
-                creds = dict(st.secrets["creds"])
-            else:
-                creds = json.loads(st.secrets["creds"])
+        # Check if the properties exist directly in st.secrets flat layout
+        if "private_key" in st.secrets:
+            creds = dict(st.secrets)
             
-            if "private_key" in creds:
-                pk = str(creds["private_key"])
-                # 1. Strip away standard headers, labels, and system artifacts
-                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
-                pk = pk.replace("-----END PRIVATE KEY-----", "")
-                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
-                
-                # 2. Re-wrap the raw, sanitized key block with perfectly structured headers
-                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
-                # Slice the raw token block into clean, compliant 64-character text segments
-                for i in range(0, len(pk), 64):
-                    clean_pk += pk[i:i+64] + "\n"
-                clean_pk += "-----END PRIVATE KEY-----\n"
-                
-                creds["private_key"] = clean_pk
+            pk = str(creds["private_key"])
+            # Remove any formatting strings or literal backslashes
+            pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
+            pk = pk.replace("-----END PRIVATE KEY-----", "")
+            pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+            
+            # Rebuild a perfectly normalized PEM data structure
+            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+            for i in range(0, len(pk), 64):
+                clean_pk += pk[i:i+64] + "\n"
+            clean_pk += "-----END PRIVATE KEY-----\n"
+            
+            creds["private_key"] = clean_pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
