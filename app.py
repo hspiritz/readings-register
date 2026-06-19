@@ -193,25 +193,23 @@ st.markdown(f"<h1>📚 {T_TITLE_ENG} <span style='font-size: 22px; color: #d4af3
 GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iPxF9ftWROX-_BbBBGKC3rkgRn5QcCIrvcbB3jVoH1g/edit?usp=sharing"
 CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 
+import base64
+
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        if "private_key" in st.secrets:
+        if "private_key_base64" in st.secrets:
             creds = dict(st.secrets)
             
-            pk = str(creds["private_key"])
-            # Remove standard headers and manual escape characters
-            pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
-            pk = pk.replace("-----END PRIVATE KEY-----", "")
-            pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+            # Decode the base64 string directly back to a functional private key row
+            encoded_key = creds["private_key_base64"]
+            decoded_bytes = base64.b64decode(encoded_key)
+            decoded_str = decoded_bytes.decode("utf-8")
             
-            # Rebuild a mathematically sound PEM format block
-            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
-            for i in range(0, len(pk), 64):
-                clean_pk += pk[i:i+64] + "\n"
-            clean_pk += "-----END PRIVATE KEY-----\n"
-            
-            creds["private_key"] = clean_pk
+            # Form clean system credentials dictionaries
+            creds["private_key"] = decoded_str.replace("\\n", "\n")
+            if "private_key_base64" in creds:
+                del creds["private_key_base64"]
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
