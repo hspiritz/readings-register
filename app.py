@@ -196,14 +196,22 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        if "creds_json" in st.secrets:
-            creds = json.loads(st.secrets["creds_json"])
+        if "private_key" in st.secrets:
+            creds = dict(st.secrets)
             
-            if "private_key" in creds:
-                pk = str(creds["private_key"])
-                # Safely reconstruct real system newlines from the hyphens
-                pk = pk.replace("[-", "\n")
-                creds["private_key"] = pk
+            pk = str(creds["private_key"])
+            # Remove standard headers and manual escape characters
+            pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
+            pk = pk.replace("-----END PRIVATE KEY-----", "")
+            pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
+            
+            # Rebuild a mathematically sound PEM format block
+            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+            for i in range(0, len(pk), 64):
+                clean_pk += pk[i:i+64] + "\n"
+            clean_pk += "-----END PRIVATE KEY-----\n"
+            
+            creds["private_key"] = clean_pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
