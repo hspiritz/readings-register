@@ -196,23 +196,15 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        # Check if the properties exist directly in st.secrets flat layout
-        if "private_key" in st.secrets:
-            creds = dict(st.secrets)
+        if "creds_json" in st.secrets:
+            # Parse the direct JSON string structure
+            creds = json.loads(st.secrets["creds_json"])
             
-            pk = str(creds["private_key"])
-            # Remove any formatting strings or literal backslashes
-            pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
-            pk = pk.replace("-----END PRIVATE KEY-----", "")
-            pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
-            
-            # Rebuild a perfectly normalized PEM data structure
-            clean_pk = "-----BEGIN PRIVATE KEY-----\n"
-            for i in range(0, len(pk), 64):
-                clean_pk += pk[i:i+64] + "\n"
-            clean_pk += "-----END PRIVATE KEY-----\n"
-            
-            creds["private_key"] = clean_pk
+            if "private_key" in creds:
+                pk = str(creds["private_key"])
+                # Clean out string escape artifacts securely
+                pk = pk.replace("\\n", "\n")
+                creds["private_key"] = pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
