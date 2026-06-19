@@ -200,23 +200,26 @@ def fetch_sheet_records():
     try:
         # Check for our clean table structure in st.secrets
         if "gspread_creds" in st.secrets:
-            # Safely create a editable python dictionary from the read-only secrets mapping
+            # Safely create an editable python dictionary from the read-only secrets mapping
             creds = dict(st.secrets["gspread_creds"])
             
             if "private_key" in creds:
                 pk = str(creds["private_key"])
-                # Clean up formatting remnants and restore real system linebreaks
-                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
-                pk = pk.replace("-----END PRIVATE KEY-----", "")
-                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
                 
-                # Rebuild a mathematically sound PEM block Google requires
-                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
-                for i in range(0, len(pk), 64):
-                    clean_pk += pk[i:i+64] + "\n"
-                clean_pk += "-----END PRIVATE KEY-----\n"
+                # Normalize literal escaped '\n' text strings into real line breaks
+                if "\\n" in pk:
+                    pk = pk.replace("\\n", "\n")
                 
-                creds["private_key"] = clean_pk
+                # If it's a squashed flat string, cleanly break it into a valid 64-character PEM block
+                if "\n" not in pk.strip()[26:-24]:
+                    raw_body = pk.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").replace(" ", "").strip()
+                    clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+                    for i in range(0, len(raw_body), 64):
+                        clean_pk += raw_body[i:i+64] + "\n"
+                    clean_pk += "-----END PRIVATE KEY-----\n"
+                    pk = clean_pk
+                
+                creds["private_key"] = pk
         else:
             # Fallback to local json file if secrets are missing
             with open(CREDENTIALS_FILE, "r") as f:
