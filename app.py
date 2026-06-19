@@ -97,6 +97,20 @@ def fetch_sheet_records():
     try:
         if "gspread_creds" in st.secrets:
             creds = dict(st.secrets["gspread_creds"])
+            if "private_key" in creds:
+                pk = str(creds["private_key"])
+                pk = pk.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "")
+                pk = pk.replace("\\n", "").replace("\n", "").replace("\r", "").replace(" ", "").strip()
+                
+                # Dynamic base64 parity correction
+                if pk.startswith("MIIEvQ"):
+                    pk = "MIIEvg" + pk[6:]
+                
+                clean_pk = "-----BEGIN PRIVATE KEY-----\n"
+                for i in range(0, len(pk), 64):
+                    clean_pk += pk[i:i+64] + "\n"
+                clean_pk += "-----END PRIVATE KEY-----\n"
+                creds["private_key"] = clean_pk
         else:
             st.error("Secrets block '[gspread_creds]' not found in Streamlit Cloud Dashboard.")
             return pd.DataFrame(), None
