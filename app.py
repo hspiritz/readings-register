@@ -196,8 +196,13 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
+        # Check if running in Streamlit Cloud environment with native secrets dictionary
         if "creds" in st.secrets:
-            creds = json.loads(st.secrets["creds"])
+            # Check if it's already a dictionary table or a raw text string
+            if isinstance(st.secrets["creds"], dict):
+                creds = dict(st.secrets["creds"])
+            else:
+                creds = json.loads(st.secrets["creds"])
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
