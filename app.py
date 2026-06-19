@@ -202,9 +202,14 @@ def fetch_sheet_records():
             else:
                 creds = json.loads(st.secrets["creds"])
             
-            # Fix TOML backslash rendering by forcing raw characters into actual system line breaks
+            # Advanced Key Normalizer: Cleans up any mixed text formatting artifacts
             if "private_key" in creds:
-                creds["private_key"] = creds["private_key"].replace("\\n", "\n")
+                pk = creds["private_key"]
+                # Convert literal "\n" text strings to actual system line breaks
+                pk = pk.replace("\\n", "\n")
+                # Remove any accidental double line breaks
+                pk = pk.replace("\n\n", "\n")
+                creds["private_key"] = pk
         else:
             with open(CREDENTIALS_FILE, "r") as f:
                 creds = json.load(f)
