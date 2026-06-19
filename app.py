@@ -196,10 +196,9 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        # Check if running in Streamlit Cloud environment with native secrets dictionary
         if "creds" in st.secrets:
-            # Check if it's already a dictionary table or a raw text string
-            if isinstance(st.secrets["creds"], dict):
+            # Safely check if it's already a dictionary or a raw text string
+            if isinstance(st.secrets["creds"], dict) or hasattr(st.secrets["creds"], "keys"):
                 creds = dict(st.secrets["creds"])
             else:
                 creds = json.loads(st.secrets["creds"])
@@ -215,6 +214,7 @@ def fetch_sheet_records():
     except Exception as e:
         st.error(f"Google Cloud connection failed: {e}")
         return pd.DataFrame(), None
+
 
 raw_df, target_worksheet = fetch_sheet_records()
 
