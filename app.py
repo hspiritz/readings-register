@@ -196,20 +196,24 @@ CREDENTIALS_FILE = "sheets-ai-automation-3a77cb6b83b6.json"
 @st.cache_data(ttl=0)
 def fetch_sheet_records():
     try:
-        # Check for our clean table structure in st.secrets
         if "gspread_creds" in st.secrets:
-            # Safely create editable python dictionary from read-only mapping
             creds = dict(st.secrets["gspread_creds"])
             
             if "private_key" in creds:
                 pk = str(creds["private_key"])
                 
-                # Strip out any formatting wrappers or formatting remnants
+                # Remove header/footer flags to isolate the raw body
                 pk = pk.replace("-----BEGIN PRIVATE KEY-----", "")
                 pk = pk.replace("-----END PRIVATE KEY-----", "")
-                pk = pk.replace("\\n", "").replace("\n", "").replace(" ", "").strip()
                 
-                # Rebuild structured PEM layout block
+                # Clean up literal backslashes, line breaks, tabs, and spaces
+                pk = pk.replace("\\n", "").replace("\n", "").replace("\r", "").replace(" ", "").strip()
+                
+                # Dynamic Parity Fix: Ensure the Base64 sequence starts correctly
+                if pk.startswith("MIIEvQ"):
+                    pk = "MIIEvg" + pk[6:]
+                
+                # Reconstruct a completely pristine, line-broken PEM block
                 clean_pk = "-----BEGIN PRIVATE KEY-----\n"
                 for i in range(0, len(pk), 64):
                     clean_pk += pk[i:i+64] + "\n"
